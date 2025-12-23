@@ -155,6 +155,7 @@ Each Minion answers **exactly** the following:
 ### 🔄 What’s In Progress
 
 | Story ID | Title                                      | Owner  |
+| -------- | ------------------------------------------ | ------ |
 | LLM-3    | OpenAI / fallback LLM integration          | Gru    |
 | LLM-4    | Token management & truncation strategy     | Gru    |
 | PUB-1    | Publish updated article                    | Bob    |
