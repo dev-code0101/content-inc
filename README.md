@@ -94,15 +94,15 @@ Notes:
 * Enables comparison
 * Stakeholder-friendly demos
 
-**Status:** ⚪ Backlog
+**Status:** ⏳ In Progress (finished before phase-2 because of excelent __ of tpm)
 
 #### Stories
 
 | Story ID | Title                     | Owner  | Status |
 | -------- | ------------------------- | ------ | ------ |
-| FE-1     | React project scaffolding | Stuart | ⏳      |
-| FE-2     | Article listing page      | Stuart | ⏳      |
-| FE-3     | Article detail page       | Stuart | ⏳      |
+| FE-1     | React project scaffolding | Stuart | ✅ Done      |
+| FE-2     | Article listing page      | Stuart | ✅ Done      |
+| FE-3     | Article detail page       | Stuart | ✅ Done      |
 | FE-4     | Version comparison UI     | Stuart | ⏳      |
 
 ---
@@ -114,9 +114,9 @@ To maximize throughput, work is intentionally split across **independent but syn
 | Stream   | Focus                | Dependencies               | Status |
 | -------- | -------------------- | -------------------------- | ------ |
 | Stream A | Scraping & ingestion | External website stability | 🟢     |
-| Stream B | Backend APIs         | DB schema                  | 🟡     |
-| Stream C | Automation design    | API contracts              | 🔴     |
-| Stream D | Frontend UX          | API readiness              | ⚪      |
+| Stream B | Backend APIs         | DB schema                  | 🟢    |
+| Stream C | Automation design    | API contracts              | 🟡     |
+| Stream D | Frontend UX          | API readiness              | 🟢      |
 
 > **PM Note:**
 > No stream is allowed to idle. If blocked, Minions must produce documentation, spike solutions, or write TODOs.
@@ -154,9 +154,15 @@ Each Minion answers **exactly** the following:
 
 ### 🔄 What’s In Progress
 
-| CI-1     | Fetch latest article via API |
-| CI-2     | Google Search integration    |
-| CI-3     | Filter non-blog results      |
+| LLM-3    | OpenAI / fallback LLM integration          | Gru    |
+| LLM-4    | Token management & truncation strategy     | Gru    |
+| PUB-1    | Publish updated article                    | Bob    |
+| PUB-2    | Payload validation & slug generation       | Bob    |
+| PUB-3    | Retry/backoff for publish failures         | Bob    |
+| INF-1    | Logging & observability (console → logger) | Alex   |
+| CI-3     | Filter non-blog results                    | Kevin  |
+| SCR-3    | Robust content extraction (Readability)    | Stuart |
+| SCR-4    | Respect robots.txt & rate limiting         | Stuart |
 
 ---
 
@@ -180,9 +186,9 @@ Each Minion answers **exactly** the following:
 # 📊 METRICS, BECAUSE FEELINGS DON’T SCALE
 
 * Articles ingested: **5 / 5**
-* APIs completed: **2 / 4**
-* Blockers unresolved >24h: **0**
-* Parallel streams active: **4**
+* APIs completed: **4 / 4**
+* Blockers unresolved >24h: **30**
+* Parallel streams active: **3**
 
 ---
 
