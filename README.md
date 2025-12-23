@@ -32,8 +32,8 @@ This initiative is managed as a **multi-epic, multi-stream program** with clearl
 | -------- | ---------------------------------------- | -------------- | -------------- |
 | ING-1    | Identify & validate blog scraping source | Kevin          | ⏳        |
 | ING-2    | Scrape 5 oldest articles                 | Kevin          | ⏳        |
-| ING-3    | Define article schema                    | Stuart         | ⏳        |
-| ING-4    | Persist articles in database             | Stuart         | ⏳        |
+| ING-3    | Define article schema                    | Stuart         | 🟢 Done        |
+| ING-4    | Persist articles in database             | Stuart         | 🟢 Done        |
 | API-1    | Scaffold Laravel project                 | Bob            | 🟢 Done        |
 | API-2    | Implement Create Article API             | Bob            | 🟢 Done |
 | API-3    | Implement Read APIs                      | Bob            | 🟢 Done              |
