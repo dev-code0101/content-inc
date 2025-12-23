@@ -30,8 +30,8 @@ This initiative is managed as a **multi-epic, multi-stream program** with clearl
 
 | Story ID | Title                                    | Owner (Minion) | Status         |
 | -------- | ---------------------------------------- | -------------- | -------------- |
-| ING-1    | Identify & validate blog scraping source | Kevin          | ⏳        |
-| ING-2    | Scrape 5 oldest articles                 | Kevin          | ⏳        |
+| ING-1    | Identify & validate blog scraping source | Kevin          | 🟢 Done        |
+| ING-2    | Scrape 5 oldest articles                 | Kevin          | 🟢 Done        |
 | ING-3    | Define article schema                    | Stuart         | 🟢 Done        |
 | ING-4    | Persist articles in database             | Stuart         | 🟢 Done        |
 | API-1    | Scaffold Laravel project                 | Bob            | 🟢 Done        |
@@ -138,8 +138,9 @@ Each Minion answers **exactly** the following:
 
 ### 🔄 What’s In Progress
 
-* CRUD API completion
-* API contract stabilization for Phase 2
+| CI-1     | Fetch latest article via API |
+| CI-2     | Google Search integration    |
+| CI-3     | Filter non-blog results      |
 
 ---
 
