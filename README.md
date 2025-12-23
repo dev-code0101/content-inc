@@ -30,14 +30,14 @@ This initiative is managed as a **multi-epic, multi-stream program** with clearl
 
 | Story ID | Title                                    | Owner (Minion) | Status         |
 | -------- | ---------------------------------------- | -------------- | -------------- |
-| ING-1    | Identify & validate blog scraping source | Kevin          | 🟢 Done        |
-| ING-2    | Scrape 5 oldest articles                 | Kevin          | 🟢 Done        |
-| ING-3    | Define article schema                    | Stuart         | 🟢 Done        |
-| ING-4    | Persist articles in database             | Stuart         | 🟢 Done        |
-| API-1    | Scaffold Laravel project                 | Bob            | 🟢 Done        |
-| API-2    | Implement Create Article API             | Bob            | 🟢 Done |
-| API-3    | Implement Read APIs                      | Bob            | 🟢 Done              |
-| API-4    | Update & Delete APIs                     | Bob            | 🟢 Done              |
+| ING-1    | Identify & validate blog scraping source | Kevin          | ✅ Done        |
+| ING-2    | Scrape 5 oldest articles                 | Kevin          | ✅ Done        |
+| ING-3    | Define article schema                    | Stuart         | ✅ Done        |
+| ING-4    | Persist articles in database             | Stuart         | ✅ Done        |
+| API-1    | Scaffold Laravel project                 | Bob            | ✅ Done        |
+| API-2    | Implement Create Article API             | Bob            | ✅ Done |
+| API-3    | Implement Read APIs                      | Bob            | ✅ Done              |
+| API-4    | Update & Delete APIs                     | Bob            | ✅ Done              |
 
 ---
 
@@ -55,16 +55,32 @@ This initiative is managed as a **multi-epic, multi-stream program** with clearl
 
 #### Stories
 
-| Story ID | Title                            | Owner  | Status      |
-| -------- | -------------------------------- | ------ | ----------- |
-| CI-1     | Fetch latest article via API     | Kevin  | ⏳           |
-| CI-2     | Google Search integration        | Kevin  | ⏳           |
-| CI-3     | Filter non-blog results          | Kevin  | ⏳           |
-| SCR-1    | Scrape competitor article #1     | Stuart | ⏳           |
-| SCR-2    | Scrape competitor article #2     | Stuart | ⏳           |
-| LLM-1    | Prompt design for transformation | Gru    | 🧠 Thinking |
-| LLM-2    | Enforce citation insertion       | Gru    | 🧠 Thinking |
-| PUB-1    | Publish updated article          | Bob    | ⏳           |
+| Story ID | Title                                      | Owner  | Status        |
+| -------- | ------------------------------------------ | ------ | ------------- |
+| CI-1     | Fetch latest article via API               | Kevin  | 🟢 Done       |
+| CI-2     | Google Search integration                  | Kevin  | ✅ Done |
+| CI-3     | Filter non-blog results                    | Kevin  | ⏳ In Progress |
+| SCR-1    | Scrape competitor article #1               | Stuart | 🟢 Done       |
+| SCR-2    | Scrape competitor article #2               | Stuart | 🟢 Done       |
+| SCR-3    | Robust content extraction (Readability)    | Stuart | ⏳ In Progress |
+| SCR-4    | Respect robots.txt & rate limiting         | Stuart | ⏳ In Progress |
+| LLM-1    | Prompt design for transformation           | Gru    | 🧠 Thinking   |
+| LLM-2    | Enforce citation insertion                 | Gru    | 🧠 Thinking   |
+| LLM-3    | OpenAI / fallback LLM integration          | Gru    | ⏳ In Progress |
+| LLM-4    | Token management & truncation strategy     | Gru    | ⏳ In Progress |
+| PUB-1    | Publish updated article                    | Bob    | ⏳ In Progress |
+| PUB-2    | Payload validation & slug generation       | Bob    | ⏳ In Progress |
+| PUB-3    | Retry/backoff for publish failures         | Bob    | ⏳ In Progress |
+| INF-1    | Logging & observability (console → logger) | Alex   | ⏳ In Progress |
+| INF-2    | Error handling & alerting                  | Alex   | ✅ Done |
+| SEC-1    | Secrets via env/.env handling              | Maya   | ✅ Done |
+| TEST-1   | Unit tests for services & clients          | QA     | ✅ Done        |
+| TEST-2   | Integration test against staging API       | QA     | ✅ Done        |
+| DOC-1    | docs.md (concise)                          | Team   | ✅ Done        |
+
+Notes:
+- Added scraping robustness, robots.txt/rate-limit, LLM integration/fallback, token truncation, observability, error handling, retries, secret management, and tests.
+- Prioritize SCR-3, LLM-3, and SEC-1 before running large-scale scraping/LLM calls.
 
 ---
 
