@@ -34,10 +34,10 @@ This initiative is managed as a **multi-epic, multi-stream program** with clearl
 | ING-2    | Scrape 5 oldest articles                 | Kevin          | ⏳        |
 | ING-3    | Define article schema                    | Stuart         | ⏳        |
 | ING-4    | Persist articles in database             | Stuart         | ⏳        |
-| API-1    | Scaffold Laravel project                 | Bob            | ⏳        |
-| API-2    | Implement Create Article API             | Bob            | ⏳ |
-| API-3    | Implement Read APIs                      | Bob            | ⏳              |
-| API-4    | Update & Delete APIs                     | Bob            | ⏳              |
+| API-1    | Scaffold Laravel project                 | Bob            | 🟢 Done        |
+| API-2    | Implement Create Article API             | Bob            | 🟢 Done |
+| API-3    | Implement Read APIs                      | Bob            | 🟢 Done              |
+| API-4    | Update & Delete APIs                     | Bob            | 🟢 Done              |
 
 ---
 
