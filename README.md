@@ -119,35 +119,7 @@ Each Minion answers **exactly** the following:
 
 ---
 
-### 📅 Sample Daily Update
-
-**Kevin**
-
-* Yesterday: Completed scraping logic for oldest articles
-* Today: Add retry + error handling
-* Blockers: None
-
-**Stuart**
-
-* Yesterday: Finalized DB schema
-* Today: Validate scraped data consistency
-* Blockers: None
-
-**Bob**
-
-* Yesterday: API scaffolding
-* Today: Implement Create & Read endpoints
-* Blockers: Needs confirmation on article versioning approach
-
-**Gru (PM)**
-
-* Yesterday: Reviewed scope creep
-* Today: Pressure Minions for timelines
-* Blockers: None (as expected)
-
----
-
-# 📆 WEEKLY EXECUTIVE UPDATE (For People Who Don’t Code)
+## 📆 WEEKLY EXECUTIVE UPDATE (For People Who Don’t Code)
 
 ### 🗓️ Week [X] Update
 
