@@ -12,6 +12,24 @@ This initiative is managed as a **multi-epic, multi-stream program** with clearl
 
 ---
 
+## Database Schema
+
+<img src="blog-cms-api\blog-cms-main\screenshot/schema-database-blog-cms-Yasser-Elgammal.png" width="750" alt="Database Schema">
+
+---
+
+## Project Functionality
+
+### Roles
+
+| Role Name | Role_ID |
+|-----------|---------|
+| Admin     | 1       |
+| Writer    | 2       |
+| User      | 3       |
+
+---
+
 ## 🧱 EPIC BREAKDOWN (Jira-Style)
 
 ### 🧠 EPIC 1: Content Ingestion & Platform Enablement
