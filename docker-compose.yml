@@ -1,0 +1,173 @@
+version: "3.9"
+
+# -------------------------------------------------
+# Networks
+# -------------------------------------------------
+networks:
+  backend:          # internal communication between services
+  frontend:         # optional – for exposing only the web‑facing containers
+  monitoring:       # (optional) for Prometheus/Grafana etc.
+
+# -------------------------------------------------
+# Volumes (persistent data)
+# -------------------------------------------------
+volumes:
+  db_data:          # MySQL / MariaDB data
+  redis_data:       # Redis persistence
+  laravel_storage: # Laravel storage folder (uploads, logs, etc.)
+  laravel_logs:    # Laravel log files
+  ingest_logs:     # Python app logs
+  transform_logs:  # Node‑Express logs
+  presentation_static: # Built front‑end assets (optional, kept in container)
+
+# -------------------------------------------------
+# Services
+# -------------------------------------------------
+services:
+  # -------------------------------------------------
+  # 1️⃣ Laravel API (PHP‑FPM) + Nginx
+  # -------------------------------------------------
+  laravel:
+    build:
+      context: ./blog-cms-api/blog-cms-main
+      dockerfile: Dockerfile
+    image: blog-cms-api:latest
+    container_name: laravel_app
+    restart: unless-stopped
+    env_file:
+      - ./blog-cms-api/.env            # create this file (APP_KEY, DB_*, etc.)
+    volumes:
+      - laravel_storage:/var/www/html/storage
+      - laravel_logs:/var/www/html/storage/logs
+      - ./blog-cms-api/blog-cms-main/public:/var/www/html/public:ro
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    restart: unless-stopped
+    ports:
+      - "8000:80"                       # host → http://localhost:8000
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./blog-cms-api/blog-cms-main/public:/var/www/html/public:ro
+    depends_on:
+      - laravel
+    networks:
+      - backend
+      - frontend
+
+  # -------------------------------------------------
+  # 2️⃣ Database (MySQL) – adjust if you use PostgreSQL
+  # -------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: secret_root
+      MYSQL_DATABASE: blog_cms
+      MYSQL_USER: blog_user
+      MYSQL_PASSWORD: blog_pass
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - backend
+
+  # -------------------------------------------------
+  # 3️⃣ Redis – used by Celery, lock, and optional queues
+  # -------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+  # -------------------------------------------------
+  # 4️⃣ Ingest Engine (Python) – FastAPI + Celery worker
+  # -------------------------------------------------
+  ingest:
+    build:
+      context: ./ingest_engine
+      dockerfile: Dockerfile
+    image: ingest_engine:latest
+    container_name: ingest_engine
+    restart: unless-stopped
+    env_file:
+      - ./ingest_engine/.env          # e.g. SCRAPER_BASE_URL, LOG_LEVEL, etc.
+    depends_on:
+      - redis
+    volumes:
+      - ingest_logs:/app/logs
+    ports:
+      - "8001:8000"                    # host → FastAPI UI (optional)
+    networks:
+      - backend
+      - frontend
+
+  celery_worker:
+    build:
+      context: ./ingest_engine
+      dockerfile: Dockerfile
+    image: ingest_engine_worker:latest
+    container_name: celery_worker
+    restart: unless-stopped
+    command: >
+      sh -c "celery -A app.tasks.celery_app worker
+             --loglevel=info
+             --queues=default"
+    env_file:
+      - ./ingest_engine/.env
+    depends_on:
+      - redis
+      - ingest
+    volumes:
+      - ingest_logs:/app/logs
+    networks:
+      - backend
+
+  # -------------------------------------------------
+  # 5️⃣ Transform Engine (Node‑Express)
+  # -------------------------------------------------
+  transform:
+    build:
+      context: ./transform_engine
+      dockerfile: Dockerfile
+    image: transform_engine:latest
+    container_name: transform_engine
+    restart: unless-stopped
+    env_file:
+      - ./transform_engine/.env
+    depends_on:
+      - redis
+    ports:
+      - "8002:3000"                    # host → http://localhost:8002
+    networks:
+      - backend
+      - frontend
+
+  # -------------------------------------------------
+  # 6️⃣ Presentation (React/Vite) – static site served by Nginx
+  # -------------------------------------------------
+  presentation:
+    build:
+      context: ./_presentation
+      dockerfile: Dockerfile
+    image: presentation_static:latest
+    container_name: presentation_static
+    restart: unless-stopped
+    ports:
+      - "8080:80"                      # host → http://localhost:8080
+    networks:
+      - frontend
