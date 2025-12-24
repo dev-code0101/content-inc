@@ -1,0 +1,22 @@
+
+services:
+  api:
+    build: .
+    command: uvicorn app.api:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  worker:
+    build: .
+    command: python celery_worker.py -A app.tasks.celery_app worker --loglevel=info
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"

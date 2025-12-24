@@ -1,113 +1,94 @@
-
 # API Routes — MicroService Services
 
 Note: two services are involved
 
-- Laravel Posts API (primary source of truth) — runs at `http://localhost:8000` (example)
-- Orchestrator / Transformation Service (job runner + scheduler + logs) — runs at `http://localhost:4000` (example)
+- Laravel Posts API (primary source of truth) — runs at `http://localhost:8000`
+- - Ingestion / Scraper Service (job runner + scheduler + logs) — runs at `http://localhost:5000`
+- Orchestrator / Transformation Service (job runner + scheduler + logs) — runs at `http://localhost:4000`
 
 ---
 
-## Laravel Posts API (Content store)
+## 1. Laravel Posts API (Content Store)
 
-Responsible for storing original posts and published transformed versions.
+| Method | Endpoint                     | Description                                   | Example |
+|--------|------------------------------|-----------------------------------------------|---------|
+| GET    | `/api/categories`            | List all categories                           | |
+| GET    | `/api/categories/{id}`       | List posts in a category                      | |
+| GET    | `/api/posts`                 | List all posts (original + updated)           | `?q=search&page=2` |
+| GET    | `/api/posts/{id}`            | Get a specific post                           | |
+| POST   | `/api/posts`                 | Create a new (transformed) post               | See payload below |
+| GET    | `/api/posts/{id}/versions`   | List transformed versions for a post          | |
+| GET    | `/api/posts/{id}/versions/{v}`| Get a specific transformed version            | `v` = version id or slug |
 
-| Method | Endpoint                    | Description                                 | Notes / Example |
-|--------|-----------------------------|---------------------------------------------|-----------------|
-| GET    | /api/categories             | List all categories                         | |
-| GET    | /api/categories/{id}        | List posts in a category                    | |
-| GET    | /api/posts                  | List all posts (original + updated items)   | Supports query params: ?q=search, ?page= |
-| GET    | /api/posts/{id}             | Get a specific post                         | Returns original or a wrapper with versions |
-| POST   | /api/posts                  | Create a new post                           | Body: { user_id, category_id, title, content, status, slug, image } — used by orchestrator to publish transformed articles |
-| GET    | /api/posts/{id}/versions    | List transformed versions for a post        | Optional: implement relation versions() |
-| GET    | /api/posts/{id}/versions/{v}| Get a specific transformed version          | v = version id or slug |
+**Publish payload (sent by the Scraper Microservice):**
 
-Example publish payload (from orchestrator):
-
+```json
 {
   "user_id": 3,
   "category_id": 2,
   "title": "Sample Article Title (Updated)",
-  "content": `"<h1>…</h1>…\n\n## References\n- https://example.com/article-1\n- https://example.com/article-2"`,
+  "content": "<h1>…</h1>\n\n## References\n- https://example.com/article-1\n- https://example.com/article-2",
   "status": true,
   "slug": "sample-article-title-updated",
   "image": null
 }
+```
 
-Security: protect POST /api/posts with authentication (API token) so only orchestrator can publish.
+*Security:* protect `POST /api/posts` with an API token so only the orchestrator/scraper can publish.
 
 ---
 
-## Orchestrator / Transformation Service (Runner, Scheduler, Queue, Logs)
+## 2. Blog Scraper Microservice (FastAPI + Celery)
 
-Responsible for searching, scraping, LLM transformation, and orchestrating publish actions. Exposes control endpoints and job logs.
+Base URL: **`http://localhost:4000`**
 
-Base: http://localhost:4000 (example)
+| Method | Endpoint      | Description & Behavior                                                                 | Notes |
+|--------|---------------|------------------------------------------------------------------------------------------|-------|
+| **POST** | `/scrape` | Enqueue a scrape‑and‑publish job. Returns a Celery `task_id`. Rejects with **409** if a job is already running. | Returns `{ "task_id": "...", "status": "queued" }` |
+| GET    | `/health`    | Simple health check – returns 200 if the API and Redis are reachable.                  | Useful for orchestration / Kubernetes liveness probes |
 
-| Method | Endpoint                          | Description / Behavior                                           | Notes / Example |
-|--------|-----------------------------------|------------------------------------------------------------------|-----------------|
-| POST   | /api/transform/run                | Enqueue & run a transformation job                              | Body: { async: true/false, post_id?: number } — returns jobId. Rejects if another job is running. |
-| POST   | /api/transform/schedule           | Create a recurring cron job to run transformations              | Body: { cron: "*/30 * * * *", post_id?: number } |
-| GET    | /api/transform/jobs               | List recent transform jobs and status                           | Returns job metadata (id, status, createdAt, startedAt, finishedAt, error) |
-| GET    | /api/transform/jobs/{id}          | Get job detail + logs                                            | Logs include timestamped lines from that run |
-| POST   | /api/transform/cancel/{id}        | Cancel a scheduled job (if implemented)                         | Optional — requires scheduler support |
-| GET    | /health                           | Health check for orchestrator service                           | Reports queue status, active job flag |
+**Important behavior**
 
-Important behavior
+* **Single‑run policy** – a Redis lock (`scrape_job_lock`) guarantees that only one scrape job can be active at a time. Subsequent `POST /scrape` calls while the lock exists receive **409 Conflict**.  
+* **Background processing** – the request returns immediately; the heavy work runs in a Celery worker (`celery -A app.tasks.celery_app worker`).  
+* **Logging** – all steps (page fetch, article extraction, API post) are written to `logs/app.log` (rotating file) and to stdout.  
+* **Result** – after the worker finishes, the lock is released automatically.
 
-- Single-run policy: POST /api/transform/run will reject with 409 if another job is running or queued.
-- Queue: in-memory queue by default; optional Redis/BullMQ when REDIS_URL is provided.
-- Logs: per-job in-memory log store; persist to DB or files for production.
-- Publish: orchestrator calls Laravel POST /api/posts to save transformed article. Provide API credentials for that call via env vars.
+---
 
-Example Run request:
-POST /api/transform/run
-Body: { "async": true }
-Response (202):
-{ "jobId": "d9f8-....", "status": "queued" }
+## 3. Orchestrator / Transformation Service (Runner, Scheduler, Queue, Logs)
 
-Example Job detail response:
-{
-  "id": "d9f8-....",
-  "status": "running",
-  "createdAt": "2025-12-24T12:00:00Z",
-  "startedAt": "2025-12-24T12:00:05Z",
-  "logs": [
-    { "ts":"...","level":"info","msg":"Orchestrator run started" },
-    { "ts":"...","level":"info","msg":"Fetched latest article: Sample Article Title" },
-    ...
-  ]
-}
+Base URL: **`http://localhost:5000`**
 
-Security & Integration
+| Method | Endpoint                     | Description / Behavior                                            | Notes |
+|--------|------------------------------|--------------------------------------------------------------------|-------|
+| POST   | `/api/transform/run`         | Enqueue & run a transformation job (calls the Scraper service).  | Body: `{ "async": true, "post_id"?: number }` – returns `jobId`. Rejects with **409** if another job is running. |
+| POST   | `/api/transform/schedule`    | Create a recurring cron job to run transformations.               | Body: `{ "cron": "*/30 * * * *", "post_id"?: number }` |
+| GET    | `/api/transform/jobs`        | List recent transform jobs and status.                             | Returns job metadata (`id`, `status`, timestamps, `error`). |
+| GET    | `/api/transform/jobs/{id}`   | Get job detail + logs.                                             | Logs include timestamped lines from that run. |
+| POST   | `/api/transform/cancel/{id}`| Cancel a scheduled job (if implemented).                          | Optional – requires scheduler support. |
+| GET    | `/health`                    | Health check for orchestrator service.                             | Reports queue status, active‑job flag. |
 
-- Authentication: protect orchestrator endpoints using an API key, JWT, or network-level restrictions.
-- Secrets: store Laravel API token, OpenAI/SerpAPI keys, and Redis URL in environment variables.
-- Persistence: for multi-instance reliability, use Redis for queue and job store, and persisted logs (Elasticsearch, S3, or DB).
+**Interaction flow**
 
-Service Responsibility Matrix (at-a-glance)
+1. **Client** → `POST /api/transform/run` (or a scheduled cron triggers it).  
+2. Orchestrator → `POST http://localhost:4000/scrape` (scraper microservice).  
+3. Scraper microservice runs the Celery task, logs progress, and **POSTs** each article to the Laravel Posts API (`/api/posts`).  
+4. Orchestrator records the Celery `task_id` as its own `jobId` and updates job status/logs accordingly.
 
-| Concern                      | Laravel API (posts) | Orchestrator Service |
-|-----------------------------:|:-------------------:|:--------------------:|
-| Store original posts         | ✅                  |                      |
-| Store transformed versions   | ✅ (via POST)       |                      |
-| Trigger transformations      |                     | ✅                   |
-| Search & scrape competitors  |                     | ✅                   |
-| LLM transformation           |                     | ✅                   |
-| Queueing & scheduling        |                     | ✅ (cron/queue)      |
-| Job logs & status            |                     | ✅ (per-job logs)    |
-| Publish transformed article  | ✅ (receives POST)  | ✅ (calls POST)      |
+---
 
-Deployment Notes
+## 4. Service Responsibility Matrix (Updated)
 
-- Run Laravel app (API) and Orchestrator separately. Provide orchestrator with API_BASE_URL pointing to Laravel (e.g., `http://localhost:8000/api`).
-- Use HTTPS and secure network between services in production.
-- Use persistent queue (Redis/BullMQ) and persistent logs for scale.
-
-Demo Admin (Laravel)
-
-- Admin URL: `http://127.0.0.1:8000/admin`
-- Email: `admin@example.com`
-- Password: password
+| Concern                      | Laravel API (posts) | Orchestrator Service | **Blog Scraper Microservice** |
+|-----------------------------:|:-------------------:|:--------------------:|:-----------------------------:|
+| Store original posts         | ✅                  |                      | |
+| Store transformed versions   | ✅ (via POST)       |                      | |
+| Trigger transformations      |                     | ✅                   | |
+| Search & scrape competitors  |                     | ✅ (calls)           | **✅ (actual scraper)** |
+| LLM transformation           |                     | ✅                   | |
+| Queueing & scheduling        |                     | ✅ (cron/queue)      | **✅ (Celery + Redis)** |
+| Job logs & status            |                     | ✅ (per‑job logs)    | **✅ (rotating file + Redis lock)** |
+| Publish transformed article  | ✅ (receives POST)  | ✅ (calls POST)      | **✅ (POST to Laravel)** |
 
 ---
